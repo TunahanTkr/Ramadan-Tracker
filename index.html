@@ -12,8 +12,10 @@
     .hint { font-size: 12px; opacity: .7; margin-bottom: 10px; }
     button { padding: 10px 12px; font-size: 14px; margin-right: 8px; }
     .wrap { overflow-x: auto; margin-top: 10px; }
-    table { border-collapse: collapse; width: 100%; min-width: 920px; }
+    table { border-collapse: collapse; width: 100%; table-layout: fixed; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th, td { font-size: 12px; }
+    .status { font-size: 16px; }
     th { position: sticky; top: 0; background: #f5f5f5; z-index: 1; }
     td.day { font-weight: 600; width: 48px; background: #fafafa; position: sticky; left: 0; z-index: 2; }
     th.day { left: 0; z-index: 3; position: sticky; }
@@ -83,13 +85,13 @@
   <script>
     const cols = [
       "Oruc",
-      "Sabah Namazi",
-      "Öğlen Namazi",
-      "İkindi Namazi",
-      "Akşam Namazi",
-      "Yatsi Namazi",
+      "Sabah",
+      "Öğlen",
+      "İkindi",
+      "Akşam",
+      "Yatsi",
       "Teravih",
-      "Kuran/Mukabele"
+      "Kuran"
     ];
 
     const states = ["", "✓", "✗"];
