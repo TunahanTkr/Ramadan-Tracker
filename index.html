@@ -12,7 +12,21 @@
     .hint { font-size: 12px; opacity: .7; margin-bottom: 10px; }
     button { padding: 10px 12px; font-size: 14px; margin-right: 8px; }
     .wrap { overflow-x: auto; margin-top: 10px; }
-    table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    
+    .wrap {
+      overflow-x: auto;
+    }
+    
+    th, td {
+      min-width: 70px;
+    }
+    td.day {
+      min-width: 45px;
+    }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th, td { font-size: 12px; }
     .status { font-size: 16px; }
