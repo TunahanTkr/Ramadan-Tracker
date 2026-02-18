@@ -1,4 +1,4 @@
-const CACHE_NAME = "ramadan-tracker-v5";
+const CACHE_NAME = "ramadan-tracker-v6";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
