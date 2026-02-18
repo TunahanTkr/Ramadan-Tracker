@@ -10,7 +10,6 @@
   <style>
     body { font-family: system-ui, -apple-system, Arial; margin: 12px; }
     h1 { font-size: 18px; margin: 0 0 10px; }
-    select { margin-bottom: 10px; padding: 6px; }
 
     .wrap { overflow-x: auto; margin-top: 10px; }
 
@@ -86,10 +85,10 @@
 
 <h1>Ramadan Tracker</h1>
 
-<select id="langSelect">
-  <option value="de">🇩🇪 Deutsch</option>
-  <option value="tr">🇹🇷 Türkçe</option>
-</select>
+<div class="lang-switch">
+  <button data-lang="de">🇩🇪</button>
+  <button data-lang="tr">🇹🇷</button>
+</div>
 
 <button id="resetBtn">Reset</button>
 <button id="noteBtn">Notiz hinzufügen</button>
@@ -113,18 +112,24 @@ const translations = {
 
 let currentLang = localStorage.getItem("lang") || "de";
 const states = ["", "✓", "✗"];
-const storageKey = "ramadan-tracker-v8";
+const storageKey = "ramadan-tracker-v9";
 
 const load = () => JSON.parse(localStorage.getItem(storageKey) || "{}");
 const save = (data) => localStorage.setItem(storageKey, JSON.stringify(data));
 const data = load();
 
 const tbl = document.getElementById("tbl");
+let currentLang = localStorage.getItem("lang") || "de";
+
 const langButtons = document.querySelectorAll(".lang-switch button");
 
 function updateActiveLang() {
   langButtons.forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.lang === currentLang);
+    if (btn.dataset.lang === currentLang) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
   });
 }
 
