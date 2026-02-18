@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ramadan Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff" />
+  <style>
+    body { font-family: system-ui, -apple-system, Arial; margin: 12px; }
+    h1 { font-size: 18px; margin: 0 0 10px; }
+    .hint { font-size: 12px; opacity: .7; margin-bottom: 10px; }
+    button { padding: 10px 12px; font-size: 14px; margin-right: 8px; }
+    .wrap { overflow-x: auto; margin-top: 10px; }
+    table { border-collapse: collapse; width: 100%; min-width: 920px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { position: sticky; top: 0; background: #f5f5f5; z-index: 1; }
+    td.day { font-weight: 600; width: 48px; background: #fafafa; position: sticky; left: 0; z-index: 2; }
+    th.day { left: 0; z-index: 3; position: sticky; }
+    dialog { border: 1px solid #ddd; border-radius: 10px; padding: 12px; }
+
+    /* Cell layout + colors */
+    td.cell { cursor: pointer; user-select: none; padding: 6px; vertical-align: top; }
+
+    .status { font-size: 18px; font-weight: 700; line-height: 1.1; min-height: 20px; }
+    .status.ok { color: #1a7f37; }   /* grün */
+    .status.no { color: #d1242f; }   /* rot */
+
+    .note { font-size: 12px; opacity: .85; margin-top: 4px; line-height: 1.2; word-break: break-word; min-height: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Ramadan Tracker</h1>
+  <div class="hint">Tippe auf ein Feld: leer → ✓ → ✗. Notizen über den Button.</div>
+
+  <button id="resetBtn">Monat zurücksetzen</button>
+  <button id="noteBtn">Notiz hinzufügen</button>
+
+  <div class="wrap">
+    <table id="tbl"></table>
+  </div>
+
+  <dialog id="noteDlg">
+    <form method="dialog" style="min-width:280px;">
+      <h3 style="margin:0 0 10px;">Notiz</h3>
+
+      <label>Tag</label><br>
+      <select id="noteDay" style="width:100%;padding:8px;margin:4px 0 10px;"></select>
+
+      <label>Spalte</label><br>
+      <select id="noteCol" style="width:100%;padding:8px;margin:4px 0 10px;"></select>
+
+      <label>Text</label><br>
+      <textarea id="noteText" rows="4" style="width:100%;padding:8px;margin:4px 0 10px;"></textarea>
+
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="delNote" type="button">Löschen</button>
+        <button value="cancel">Abbrechen</button>
+        <button id="saveNote" value="default">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const cols = [
+      "Oruc",
+      "Sabah Namazi",
+      "Öğlen Namazi",
+      "İkindi Namazi",
+      "Akşam Namazi",
+      "Yatsi Namazi",
+      "Teravih",
+      "Kuran/Mukabele"
+    ];
+
+    const states = ["", "✓", "✗"];
+    const storageKey = "ramadan-tracker-v3";
+
+    const load = () => JSON.parse(localStorage.getItem(storageKey) || "{}");
+    const save = (data) => localStorage.setItem(storageKey, JSON.stringify(data));
+
+    // data = { "day-colIndex": { s: 0..2, n: "text" } }
+    const data = load();
+
+    const tbl = document.getElementById("tbl");
+
+    // Dialog elements (need early for openNoteFor)
+    const dlg = document.getElementById("noteDlg");
+    const noteBtn = document.getElementById("noteBtn");
+    const noteDay = document.getElementById("noteDay");
+    const noteCol = document.getElementById("noteCol");
+    const noteText = document.getElementById("noteText");
+    const delNote = document.getElementById("delNote");
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderCell(td, cell) {
+      const symbol = states[cell.s]; // "", ✓, ✗
+      const cls = cell.s === 1 ? "ok" : (cell.s === 2 ? "no" : "");
+      const note = cell.n ? escapeHtml(cell.n) : "";
+
+      td.innerHTML = `
+        <div class="status ${cls}">${symbol}</div>
+        <div class="note">${note}</div>
+      `;
+    }
+
+    function currentKey() {
+      return `${noteDay.value}-${noteCol.value}`;
+    }
+
+    function loadNoteIntoDialog() {
+      const k = currentKey();
+      const cell = data[k] ?? { s: 0, n: "" };
+      noteText.value = cell.n || "";
+    }
+
+    function openNoteFor(day, colIndex) {
+      noteDay.value = String(day);
+      noteCol.value = String(colIndex);
+      loadNoteIntoDialog();
+      dlg.showModal();
+    }
+
+    function build() {
+      tbl.innerHTML = "";
+
+      // Header
+      const thead = document.createElement("thead");
+      const hr = document.createElement("tr");
+
+      const thDay = document.createElement("th");
+      thDay.textContent = "Tag";
+      thDay.className = "day";
+      hr.appendChild(thDay);
+
+      cols.forEach(c => {
+        const th = document.createElement("th");
+        th.textContent = c;
+        hr.appendChild(th);
+      });
+
+      thead.appendChild(hr);
+      tbl.appendChild(thead);
+
+      // Body
+      const tbody = document.createElement("tbody");
+      for (let d = 1; d <= 30; d++) {
+        const tr = document.createElement("tr");
+
+        const tdDay = document.createElement("td");
+        tdDay.textContent = d;
+        tdDay.className = "day";
+        tr.appendChild(tdDay);
+
+        cols.forEach((_, ci) => {
+          const td = document.createElement("td");
+          td.className = "cell";
+          const k = `${d}-${ci}`;
+          const cell = data[k] ?? { s: 0, n: "" };
+
+          renderCell(td, cell);
+
+          // Tap/Klick: Status toggeln
+          td.addEventListener("click", () => {
+            const cur = data[k] ?? { s: 0, n: "" };
+            cur.s = (cur.s + 1) % states.length;
+            data[k] = cur;
+            renderCell(td, cur);
+            save(data);
+          });
+
+          // Optional: Doppelklick (PC) öffnet Notiz
+          td.addEventListener("dblclick", () => {
+            openNoteFor(d, ci);
+          });
+
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      }
+
+      tbl.appendChild(tbody);
+    }
+
+    // Reset
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      if (confirm("Wirklich alles zurücksetzen?")) {
+        localStorage.removeItem(storageKey);
+        location.reload();
+      }
+    });
+
+    // Dropdowns befüllen
+    for (let d = 1; d <= 30; d++) {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = d;
+      noteDay.appendChild(opt);
+    }
+    cols.forEach((c, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = c;
+      noteCol.appendChild(opt);
+    });
+
+    // Dialog change handlers
+    noteDay.addEventListener("change", loadNoteIntoDialog);
+    noteCol.addEventListener("change", loadNoteIntoDialog);
+
+    // Open dialog via button
+    noteBtn.addEventListener("click", () => {
+      loadNoteIntoDialog();
+      dlg.showModal();
+    });
+
+    // Save note
+    document.getElementById("saveNote").addEventListener("click", (e) => {
+      e.preventDefault();
+      const k = currentKey();
+      const cell = data[k] ?? { s: 0, n: "" };
+      cell.n = noteText.value.trim();
+      data[k] = cell;
+      save(data);
+      dlg.close();
+      build();
+    });
+
+    // Delete note
+    delNote.addEventListener("click", () => {
+      const k = currentKey();
+      const cell = data[k] ?? { s: 0, n: "" };
+      cell.n = "";
+      data[k] = cell;
+      save(data);
+      dlg.close();
+      build();
+    });
+
+    // PWA (Service Worker)
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
+
+    build();
+  </script>
+</body>
+</html>
