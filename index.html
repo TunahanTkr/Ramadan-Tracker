@@ -93,7 +93,7 @@ const translations = {
 
 let currentLang = localStorage.getItem("lang") || "de";
 const states = ["", "✓", "✗"];
-const storageKey = "ramadan-tracker-v6";
+const storageKey = "ramadan-tracker-v7";
 
 const load = () => JSON.parse(localStorage.getItem(storageKey) || "{}");
 const save = (data) => localStorage.setItem(storageKey, JSON.stringify(data));
