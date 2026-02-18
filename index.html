@@ -19,14 +19,33 @@
     th.day { left: 0; z-index: 3; position: sticky; }
     dialog { border: 1px solid #ddd; border-radius: 10px; padding: 12px; }
 
-    /* Cell layout + colors */
-    td.cell { cursor: pointer; user-select: none; padding: 6px; vertical-align: top; }
+    td.cell {
+        cursor: pointer;
+        user-select: none;
+        padding: 6px;
+        text-align: center;
+    }
 
-    .status { font-size: 18px; font-weight: 700; line-height: 1.1; min-height: 20px; }
+    .status {
+        font-size: 20px;
+        font-weight: 700;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 28px;
+    }
+
     .status.ok { color: #1a7f37; }   /* grün */
     .status.no { color: #d1242f; }   /* rot */
 
-    .note { font-size: 12px; opacity: .85; margin-top: 4px; line-height: 1.2; word-break: break-word; min-height: 14px; }
+    .note {
+        font-size: 12px;
+        opacity: .85;
+        margin-top: 4px;
+        line-height: 1.2;
+        word-break: break-word;
+        text-align: center;
+    }
   </style>
 </head>
 <body>
