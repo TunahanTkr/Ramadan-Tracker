@@ -60,6 +60,26 @@
       margin-right: 8px;
       margin-bottom: 8px;
     }
+    
+    .lang-switch {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .lang-switch button {
+      font-size: 22px;
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    
+    .lang-switch button.active {
+      border: 2px solid #1a7f37;
+      background: #f0fdf4;
+    }
   </style>
 </head>
 <body>
@@ -67,8 +87,8 @@
 <h1>Ramadan Tracker</h1>
 
 <select id="langSelect">
-  <option value="de">Deutsch</option>
-  <option value="tr">Türkçe</option>
+  <option value="de">🇩🇪 Deutsch</option>
+  <option value="tr">🇹🇷 Türkçe</option>
 </select>
 
 <button id="resetBtn">Reset</button>
@@ -93,22 +113,29 @@ const translations = {
 
 let currentLang = localStorage.getItem("lang") || "de";
 const states = ["", "✓", "✗"];
-const storageKey = "ramadan-tracker-v7";
+const storageKey = "ramadan-tracker-v8";
 
 const load = () => JSON.parse(localStorage.getItem(storageKey) || "{}");
 const save = (data) => localStorage.setItem(storageKey, JSON.stringify(data));
 const data = load();
 
 const tbl = document.getElementById("tbl");
-const langSelect = document.getElementById("langSelect");
-langSelect.value = currentLang;
+const langButtons = document.querySelectorAll(".lang-switch button");
 
-langSelect.addEventListener("change", () => {
-  currentLang = langSelect.value;
-  localStorage.setItem("lang", currentLang);
-  build();
+function updateActiveLang() {
+  langButtons.forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.lang === currentLang);
+  });
+}
+
+langButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentLang = btn.dataset.lang;
+    localStorage.setItem("lang", currentLang);
+    updateActiveLang();
+    build();
+  });
 });
-
 function renderCell(td, cell) {
   const symbol = states[cell.s];
   const cls = cell.s === 1 ? "ok" : (cell.s === 2 ? "no" : "");
@@ -198,6 +225,7 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
 
+updateActiveLang();
 build();
 
 </script>
