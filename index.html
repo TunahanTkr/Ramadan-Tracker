@@ -69,7 +69,6 @@
 <select id="langSelect">
   <option value="de">Deutsch</option>
   <option value="tr">Türkçe</option>
-  <option value="int">International</option>
 </select>
 
 <button id="resetBtn">Reset</button>
@@ -90,10 +89,6 @@ const translations = {
     tag: "Gün",
     cols: ["Oruç", "Sabah", "Öğle", "İkindi", "Akşam", "Yatsı", "Teravih", "Kur’an"]
   },
-  int: {
-    tag: "Day",
-    cols: ["Sawm", "Fajr", "Dhuhr", "Asr", "Maghrib", "Isha", "Tarawih", "Quran"]
-  }
 };
 
 let currentLang = localStorage.getItem("lang") || "de";
