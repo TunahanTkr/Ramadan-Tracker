@@ -282,10 +282,9 @@
     });
 
     // PWA (Service Worker)
-    // Service Worker vorübergehend deaktiviert (damit Safari sicher die neueste Version lädt)
-    // if ("serviceWorker" in navigator) {
-    //   navigator.serviceWorker.register("sw.js");
-    // }
+    if ("serviceWorker" in navigator) {
+       navigator.serviceWorker.register("sw.js");
+    }
     build();
   </script>
 </body>
