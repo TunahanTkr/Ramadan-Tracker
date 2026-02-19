@@ -157,7 +157,7 @@
   const states = ["", "✓", "✗"];
 
   // Wenn du Datenformat / UI änderst, ruhig hochzählen:
-  const storageKey = "ramadan-tracker-v14";
+  const storageKey = "ramadan-tracker-v15";
 
   const load = () => JSON.parse(localStorage.getItem(storageKey) || "{}");
   const save = (obj) => localStorage.setItem(storageKey, JSON.stringify(obj));
