@@ -11,6 +11,31 @@
     body { font-family: system-ui, -apple-system, Arial; margin: 12px; }
     h1 { font-size: 18px; margin: 0 0 10px; }
 
+    .lang-switch {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .lang-switch button {
+      font-size: 22px;
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 0;
+    }
+    .lang-switch button.active {
+      border: 2px solid #1a7f37;
+      background: #f0fdf4;
+    }
+
+    button {
+      padding: 8px 10px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+
     .wrap { overflow-x: auto; margin-top: 10px; }
 
     table {
@@ -21,7 +46,7 @@
     th, td {
       border: 1px solid #ddd;
       padding: 6px;
-      min-width: 80px;
+      min-width: 90px;
       text-align: center;
     }
 
@@ -54,184 +79,247 @@
       word-break: break-word;
     }
 
-    button {
-      padding: 8px 10px;
-      margin-right: 8px;
-      margin-bottom: 8px;
-    }
-    
-    .lang-switch {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    
-    .lang-switch button {
-      font-size: 22px;
-      padding: 6px 10px;
-      border: 1px solid #ddd;
-      background: white;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    
-    .lang-switch button.active {
-      border: 2px solid #1a7f37;
-      background: #f0fdf4;
-    }
+    dialog { border: 1px solid #ddd; border-radius: 10px; padding: 12px; }
   </style>
 </head>
+
 <body>
 
-<h1>Ramadan Tracker</h1>
+  <h1>Ramadan Tracker</h1>
 
-<div class="lang-switch">
-  <button data-lang="de">🇩🇪</button>
-  <button data-lang="tr">🇹🇷</button>
-</div>
+  <div class="lang-switch">
+    <button data-lang="de" aria-label="Deutsch">🇩🇪</button>
+    <button data-lang="tr" aria-label="Türkçe">🇹🇷</button>
+  </div>
 
-<button id="resetBtn">Reset</button>
-<button id="noteBtn">Notiz hinzufügen</button>
+  <button id="resetBtn">Reset</button>
+  <button id="noteBtn">Notiz hinzufügen</button>
 
-<div class="wrap">
-  <table id="tbl"></table>
-</div>
+  <div class="wrap">
+    <table id="tbl"></table>
+  </div>
+
+  <!-- Notiz Dialog -->
+  <dialog id="noteDlg">
+    <form method="dialog" style="min-width:280px;">
+      <h3 style="margin:0 0 10px;">Notiz</h3>
+
+      <label>Tag</label><br>
+      <select id="noteDay" style="width:100%;padding:8px;margin:4px 0 10px;"></select>
+
+      <label>Spalte</label><br>
+      <select id="noteCol" style="width:100%;padding:8px;margin:4px 0 10px;"></select>
+
+      <label>Text</label><br>
+      <textarea id="noteText" rows="4" style="width:100%;padding:8px;margin:4px 0 10px;"></textarea>
+
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="delNote" type="button">Löschen</button>
+        <button value="cancel">Abbrechen</button>
+        <button id="saveNote" value="default">Speichern</button>
+      </div>
+    </form>
+  </dialog>
 
 <script>
-
-const translations = {
-  de: {
-    tag: "Tag",
-    cols: ["Fasten", "Fajr", "Dhuhr", "Asr", "Maghrib", "Isha", "Tarawih", "Quran"]
-  },
-  tr: {
-    tag: "Gün",
-    cols: ["Oruç", "Sabah", "Öğle", "İkindi", "Akşam", "Yatsı", "Teravih", "Kur’an"]
-  },
-};
-
-let currentLang = localStorage.getItem("lang") || "de";
-const states = ["", "✓", "✗"];
-const storageKey = "ramadan-tracker-v10";
-
-const load = () => JSON.parse(localStorage.getItem(storageKey) || "{}");
-const save = (data) => localStorage.setItem(storageKey, JSON.stringify(data));
-const data = load();
-
-const tbl = document.getElementById("tbl");
-
-const langButtons = document.querySelectorAll(".lang-switch button");
-
-function updateActiveLang() {
-  langButtons.forEach(btn => {
-    if (btn.dataset.lang === currentLang) {
-      btn.classList.add("active");
-    } else {
-      btn.classList.remove("active");
+  const translations = {
+    de: {
+      tag: "Tag",
+      cols: ["Fasten", "Fajr", "Dhuhr", "Asr", "Maghrib", "Isha", "Tarawih", "Quran"]
+    },
+    tr: {
+      tag: "Gün",
+      cols: ["Oruç", "Sabah", "Öğle", "İkindi", "Akşam", "Yatsı", "Teravih", "Kur’an"]
     }
-  });
-}
+  };
 
-langButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    currentLang = btn.dataset.lang;
-    localStorage.setItem("lang", currentLang);
-    updateActiveLang();
-    build();
-  });
-});
-function renderCell(td, cell) {
-  const symbol = states[cell.s];
-  const cls = cell.s === 1 ? "ok" : (cell.s === 2 ? "no" : "");
-  td.innerHTML = `
-    <div class="status ${cls}">${symbol}</div>
-    <div class="note">${cell.n || ""}</div>
-  `;
-}
+  let currentLang = localStorage.getItem("lang") || "de";
+  const states = ["", "✓", "✗"];
 
-function build() {
-  tbl.innerHTML = "";
+  // Wenn du Datenformat / UI änderst, ruhig hochzählen:
+  const storageKey = "ramadan-tracker-v11";
 
-  const thead = document.createElement("thead");
-  const hr = document.createElement("tr");
+  const load = () => JSON.parse(localStorage.getItem(storageKey) || "{}");
+  const save = (obj) => localStorage.setItem(storageKey, JSON.stringify(obj));
+  const data = load();
 
-  const thDay = document.createElement("th");
-  thDay.textContent = translations[currentLang].tag;
-  hr.appendChild(thDay);
+  const tbl = document.getElementById("tbl");
 
-  translations[currentLang].cols.forEach(c => {
-    const th = document.createElement("th");
-    th.textContent = c;
-    hr.appendChild(th);
+  // --- Language Buttons ---
+  const langButtons = document.querySelectorAll(".lang-switch button");
+
+  function updateActiveLang() {
+    langButtons.forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.lang === currentLang);
+    });
+  }
+
+  langButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentLang = btn.dataset.lang;
+      localStorage.setItem("lang", currentLang);
+      updateActiveLang();
+      build();
+      // falls Dialog offen ist oder später geöffnet wird:
+      fillColOptions();
+    });
   });
 
-  thead.appendChild(hr);
-  tbl.appendChild(thead);
+  // --- Cell render ---
+  function renderCell(td, cell) {
+    const symbol = states[cell.s];
+    const cls = cell.s === 1 ? "ok" : (cell.s === 2 ? "no" : "");
+    td.innerHTML = `
+      <div class="status ${cls}">${symbol}</div>
+      <div class="note">${cell.n || ""}</div>
+    `;
+  }
 
-  const tbody = document.createElement("tbody");
+  function build() {
+    tbl.innerHTML = "";
 
-  for (let d = 1; d <= 30; d++) {
-    const tr = document.createElement("tr");
+    const thead = document.createElement("thead");
+    const hr = document.createElement("tr");
 
-    const tdDay = document.createElement("td");
-    tdDay.textContent = d;
-    tdDay.className = "day";
-    tr.appendChild(tdDay);
+    const thDay = document.createElement("th");
+    thDay.textContent = translations[currentLang].tag;
+    hr.appendChild(thDay);
 
-    translations[currentLang].cols.forEach((_, ci) => {
-      const td = document.createElement("td");
-      td.className = "cell";
-      const k = `${d}-${ci}`;
-      const cell = data[k] ?? { s: 0, n: "" };
-
-      renderCell(td, cell);
-
-      td.addEventListener("click", () => {
-        const cur = data[k] ?? { s: 0, n: "" };
-        cur.s = (cur.s + 1) % states.length;
-        data[k] = cur;
-        renderCell(td, cur);
-        save(data);
-      });
-
-      tr.appendChild(td);
+    translations[currentLang].cols.forEach(c => {
+      const th = document.createElement("th");
+      th.textContent = c;
+      hr.appendChild(th);
     });
 
-    tbody.appendChild(tr);
+    thead.appendChild(hr);
+    tbl.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    for (let d = 1; d <= 30; d++) {
+      const tr = document.createElement("tr");
+
+      const tdDay = document.createElement("td");
+      tdDay.textContent = d;
+      tdDay.className = "day";
+      tr.appendChild(tdDay);
+
+      translations[currentLang].cols.forEach((_, ci) => {
+        const td = document.createElement("td");
+        td.className = "cell";
+
+        const k = `${d}-${ci}`;
+        const cell = data[k] ?? { s: 0, n: "" };
+
+        renderCell(td, cell);
+
+        // Tap/Klick toggelt nur ✓/✗/leer
+        td.addEventListener("click", () => {
+          const cur = data[k] ?? { s: 0, n: "" };
+          cur.s = (cur.s + 1) % states.length;
+          data[k] = cur;
+          renderCell(td, cur);
+          save(data);
+        });
+
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    }
+
+    tbl.appendChild(tbody);
   }
 
-  tbl.appendChild(tbody);
-}
+  // --- Reset ---
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if (confirm("Alles zurücksetzen?")) {
+      localStorage.removeItem(storageKey);
+      location.reload();
+    }
+  });
 
-document.getElementById("resetBtn").addEventListener("click", () => {
-  if (confirm("Alles zurücksetzen?")) {
-    localStorage.removeItem(storageKey);
-    location.reload();
+  // --- Notes Dialog ---
+  const dlg = document.getElementById("noteDlg");
+  const noteBtn = document.getElementById("noteBtn");
+  const noteDay = document.getElementById("noteDay");
+  const noteCol = document.getElementById("noteCol");
+  const noteText = document.getElementById("noteText");
+  const delNote = document.getElementById("delNote");
+  const saveNote = document.getElementById("saveNote");
+
+  function fillDayOptions() {
+    noteDay.innerHTML = "";
+    for (let d = 1; d <= 30; d++) {
+      const opt = document.createElement("option");
+      opt.value = String(d);
+      opt.textContent = String(d);
+      noteDay.appendChild(opt);
+    }
   }
-});
 
-document.getElementById("noteBtn").addEventListener("click", () => {
-  const day = prompt("Tag (1-30):");
-  const col = prompt("Spaltennummer (1-8):");
-  const text = prompt("Notiz eingeben:");
+  function fillColOptions() {
+    noteCol.innerHTML = "";
+    translations[currentLang].cols.forEach((name, i) => {
+      const opt = document.createElement("option");
+      opt.value = String(i);
+      opt.textContent = name;
+      noteCol.appendChild(opt);
+    });
+  }
 
-  if (!day || !col || !text) return;
+  function currentKey() {
+    return `${noteDay.value}-${noteCol.value}`;
+  }
 
-  const key = `${day}-${col-1}`;
-  const cell = data[key] ?? { s: 0, n: "" };
-  cell.n = text;
-  data[key] = cell;
-  save(data);
+  function loadNoteIntoDialog() {
+    const k = currentKey();
+    const cell = data[k] ?? { s: 0, n: "" };
+    noteText.value = cell.n || "";
+  }
+
+  noteDay.addEventListener("change", loadNoteIntoDialog);
+  noteCol.addEventListener("change", loadNoteIntoDialog);
+
+  noteBtn.addEventListener("click", () => {
+    fillDayOptions();
+    fillColOptions();
+
+    if (!noteDay.value) noteDay.value = "1";
+    if (!noteCol.value) noteCol.value = "0";
+
+    loadNoteIntoDialog();
+    dlg.showModal();
+  });
+
+  saveNote.addEventListener("click", (e) => {
+    e.preventDefault();
+    const k = currentKey();
+    const cell = data[k] ?? { s: 0, n: "" };
+    cell.n = noteText.value.trim();
+    data[k] = cell;
+    save(data);
+    dlg.close();
+    build();
+  });
+
+  delNote.addEventListener("click", () => {
+    const k = currentKey();
+    const cell = data[k] ?? { s: 0, n: "" };
+    cell.n = "";
+    data[k] = cell;
+    save(data);
+    dlg.close();
+    build();
+  });
+
+  // PWA
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
+
+  updateActiveLang();
   build();
-});
-
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
-
-updateActiveLang();
-build();
-
 </script>
 
 </body>
