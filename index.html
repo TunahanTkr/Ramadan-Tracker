@@ -112,14 +112,13 @@ const translations = {
 
 let currentLang = localStorage.getItem("lang") || "de";
 const states = ["", "✓", "✗"];
-const storageKey = "ramadan-tracker-v9";
+const storageKey = "ramadan-tracker-v10";
 
 const load = () => JSON.parse(localStorage.getItem(storageKey) || "{}");
 const save = (data) => localStorage.setItem(storageKey, JSON.stringify(data));
 const data = load();
 
 const tbl = document.getElementById("tbl");
-let currentLang = localStorage.getItem("lang") || "de";
 
 const langButtons = document.querySelectorAll(".lang-switch button");
 
