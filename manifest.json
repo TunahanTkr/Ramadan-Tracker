@@ -1,11 +1,11 @@
 {
   "name": "Ramadan Tracker",
   "short_name": "Ramadan",
-  "start_url": "/Ramadan-Tracker/",
+  "start_url": ".",
   "scope": "/Ramadan-Tracker/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "theme_color": "#4CAF50",
   "icons": [
     {
       "src": "icon-192.png",
