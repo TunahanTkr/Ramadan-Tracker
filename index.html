@@ -4,8 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Ramadan Tracker</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="icon" href="icon-192.png" type="image/png">
-
   <meta property="og:title" content="Ramadan Tracker">
   <meta property="og:description" content="Ramadan Fortschritt & Gebete verfolgen">
   <meta property="og:image" content="https://tunahantkr.github.io/Ramadan-Tracker/icon-512.png">
@@ -156,7 +157,7 @@
   const states = ["", "✓", "✗"];
 
   // Wenn du Datenformat / UI änderst, ruhig hochzählen:
-  const storageKey = "ramadan-tracker-v13";
+  const storageKey = "ramadan-tracker-v14";
 
   const load = () => JSON.parse(localStorage.getItem(storageKey) || "{}");
   const save = (obj) => localStorage.setItem(storageKey, JSON.stringify(obj));
