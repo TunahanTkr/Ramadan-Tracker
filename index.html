@@ -80,6 +80,17 @@
     }
 
     dialog { border: 1px solid #ddd; border-radius: 10px; padding: 12px; }
+
+    #noteText {
+      width: 100%;
+      max-width: 100%;
+      padding: 8px;
+      margin: 4px 0 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      resize: vertical;
+    }
   </style>
 </head>
 
@@ -111,7 +122,7 @@
       <select id="noteCol" style="width:100%;padding:8px;margin:4px 0 10px;"></select>
 
       <label>Text</label><br>
-      <textarea id="noteText" rows="4" style="width:100%;padding:8px;margin:4px 0 10px;"></textarea>
+      <textarea id="noteText" rows="4"></textarea>
 
       <div style="display:flex; gap:8px; justify-content:flex-end;">
         <button id="delNote" type="button">Löschen</button>
